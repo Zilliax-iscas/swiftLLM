@@ -122,6 +122,12 @@ def main() -> None:
         default=1,
         help="Repeat the selected mode(s) N times and report averaged results",
     )
+    ap.add_argument(
+        "--cpu-backend",
+        default="torch",
+        choices=["torch", "pacpu"],
+        help="CPU benchmark backend: torch ops or pacpu SIMD op",
+    )
 
     # Pass-through args for cpu/gpu benches.
     ap.add_argument("--dtype", default="bf16", choices=["fp32", "bf16", "fp16"])
@@ -140,41 +146,86 @@ def main() -> None:
     ap.add_argument("--kv-blocks", type=int, default=4096)
     ap.add_argument("--block-size", type=int, default=16)
     ap.add_argument("--max-blocks-per-seq", type=int, default=256)
+    ap.add_argument("--pacpu-library-path", default="", help="Path to libpacpu-*.so when --cpu-backend pacpu")
+    ap.add_argument("--pacpu-num-kv-heads", type=int, default=None, help="KV heads for pacpu benchmark")
+    ap.add_argument("--pacpu-num-layers", type=int, default=32, help="Num layers for pacpu benchmark")
+    ap.add_argument("--pacpu-cur-layer", type=int, default=0, help="Layer id for pacpu benchmark")
+    ap.add_argument("--pacpu-max-seqs-in-block-table", type=int, default=4096)
 
     args = ap.parse_args()
 
-    cpu_cmd = [
-        args.python,
-        "benchmarks/cpu_ops_bench.py",
-        "--dtype",
-        args.dtype,
-        "--threads",
-        str(args.threads),
-        "--iters",
-        str(args.iters),
-        "--warmup",
-        str(args.warmup),
-        "--batch",
-        str(args.batch),
-        "--seq",
-        str(args.seq),
-        "--hidden",
-        str(args.hidden),
-        "--num-heads",
-        str(args.num_heads),
-        "--head-dim",
-        str(args.head_dim),
-        "--vocab",
-        str(args.vocab),
-        "--inter",
-        str(args.inter),
-        "--kv-blocks",
-        str(args.kv_blocks),
-        "--block-size",
-        str(args.block_size),
-        "--max-blocks-per-seq",
-        str(args.max_blocks_per_seq),
-    ]
+    if args.cpu_backend == "torch":
+        cpu_cmd = [
+            args.python,
+            "benchmarks/cpu_ops_bench.py",
+            "--dtype",
+            args.dtype,
+            "--threads",
+            str(args.threads),
+            "--iters",
+            str(args.iters),
+            "--warmup",
+            str(args.warmup),
+            "--batch",
+            str(args.batch),
+            "--seq",
+            str(args.seq),
+            "--hidden",
+            str(args.hidden),
+            "--num-heads",
+            str(args.num_heads),
+            "--head-dim",
+            str(args.head_dim),
+            "--vocab",
+            str(args.vocab),
+            "--inter",
+            str(args.inter),
+            "--kv-blocks",
+            str(args.kv_blocks),
+            "--block-size",
+            str(args.block_size),
+            "--max-blocks-per-seq",
+            str(args.max_blocks_per_seq),
+        ]
+    else:
+        if not args.pacpu_library_path:
+            raise ValueError("--pacpu-library-path is required when --cpu-backend pacpu")
+        cpu_cmd = [
+            args.python,
+            "benchmarks/pacpu_ops_bench.py",
+            "--library-path",
+            args.pacpu_library_path,
+            "--dtype",
+            args.dtype,
+            "--threads",
+            str(args.threads),
+            "--iters",
+            str(args.iters),
+            "--warmup",
+            str(args.warmup),
+            "--batch",
+            str(args.batch),
+            "--seq",
+            str(args.seq),
+            "--num-heads",
+            str(args.num_heads),
+            "--num-kv-heads",
+            str(args.pacpu_num_kv_heads if args.pacpu_num_kv_heads is not None else args.num_heads),
+            "--head-dim",
+            str(args.head_dim),
+            "--num-layers",
+            str(args.pacpu_num_layers),
+            "--cur-layer",
+            str(args.pacpu_cur_layer),
+            "--kv-blocks",
+            str(args.kv_blocks),
+            "--block-size",
+            str(args.block_size),
+            "--max-seqs-in-block-table",
+            str(args.pacpu_max_seqs_in_block_table),
+            "--max-blocks-per-seq",
+            str(args.max_blocks_per_seq),
+        ]
 
     gpu_cmd = [
         args.python,
@@ -213,7 +264,7 @@ def main() -> None:
     print(f"python={shlex.join([args.python])}")
     print(f"shape: B={args.batch} S={args.seq} H={args.hidden} heads={args.num_heads} head_dim={args.head_dim} dtype={args.dtype}")
     print(f"iters={args.iters} warmup={args.warmup} cpu_threads={args.threads} gpu_device={args.device}")
-    print(f"mode={args.mode} repeats={args.repeats}")
+    print(f"mode={args.mode} repeats={args.repeats} cpu_backend={args.cpu_backend}")
     print()
 
     if args.repeats < 1:
