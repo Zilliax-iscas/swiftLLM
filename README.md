@@ -1,115 +1,115 @@
 # SwiftLLM
 
-*This project is still under development. Some features may not be implemented yet, and documentation may be incomplete.*
+*该项目仍在开发中。部分功能可能尚未实现，文档也可能不完整。*
 
-A tiny yet powerful LLM inference system tailored for researching purpose.
+一个小巧但强大的、面向研究用途的 LLM 推理系统。
 
-vLLM-equivalent performance with only 2k lines of code (2% of vLLM).
+仅用 2k 行代码（约为 vLLM 的 2%），即可实现与 vLLM 相当的性能。
 
-## Why SwiftLLM
+## 为什么选择 SwiftLLM
 
-There are so many open source frameworks for LLM serving, including [HuggingFace Transformers](https://github.com/huggingface/transformers), [vLLM](https://github.com/vllm-project/vllm), [LightLLM](https://github.com/ModelTC/lightllm), [DistServe](https://github.com/LLMServe/DistServe) and [DeepSpeed-MII](https://github.com/microsoft/DeepSpeed-MII). Why SwiftLLM?
+开源的 LLM Serving 框架有很多，包括 [HuggingFace Transformers](https://github.com/huggingface/transformers)、[vLLM](https://github.com/vllm-project/vllm)、[LightLLM](https://github.com/ModelTC/lightllm)、[DistServe](https://github.com/LLMServe/DistServe) 和 [DeepSpeed-MII](https://github.com/microsoft/DeepSpeed-MII)。为什么还需要 SwiftLLM？
 
-The reason is that, those frameworks are tailored for **production**, instead of **researching**. They are equipped with numerous features, such as 100+ model supports, various hardward supports, LoRA, quantization, multimodal, prefix caching, beam search, and so on. While being an all-in-one solution for production, their codebase is too big and complex to understand and modify (for example, vLLM has 100k+ lines of code), making it hard to use them for researching purpose. Also, their historical burden is also a problem.
+原因在于，这些框架主要是为**生产环境**设计的，而不是为**研究**设计的。它们具备大量功能，例如支持 100+ 模型、各种硬件支持、LoRA、量化、多模态、前缀缓存、beam search 等等。虽然它们作为面向生产的一体化方案非常强大，但它们的代码库过于庞大且复杂，难以理解和修改（例如 vLLM 拥有超过 10 万行代码），这使得它们并不适合研究用途。此外，它们的历史包袱也是一个问题。
 
-SwiftLLM is designed to be a tiny yet powerful LLM inference system tailored for **researching purpose**. "Tiny" means that it only keeps features that are essential for researching, "powerful" means that it has no compromise on performance, and finally "swift" means that it is easy to understand and modify. While supporting basic features (see the list below) and being able to achieve equivalent performance to vLLM, the codebase of SwiftLLM is less than **2k** lines of code (~2% of vLLM), written in Python and [OpenAI Triton](https://github.com/openai/triton) (a DSL for writing CUDA kernels), making it easy to read, modify, debug, test, extend, and can be easily integrated with your novel and brilliant research ideas.
+SwiftLLM 被设计成一个小巧但强大的 LLM 推理系统，专门面向**研究用途**。“小巧”意味着它只保留研究所必需的功能；“强大”意味着它在性能上不做妥协；而“Swift”则意味着它易于理解和修改。SwiftLLM 在支持基础功能（见下方列表）并能达到与 vLLM 相当性能的同时，整个代码库只有不到 **2k** 行代码（约为 vLLM 的 2%），使用 Python 和 [OpenAI Triton](https://github.com/openai/triton)（一种用于编写 CUDA kernel 的 DSL）编写，易于阅读、修改、调试、测试和扩展，也能够方便地与你新颖而出色的研究想法结合。
 
-## Feature List
+## 功能列表
 
-Currently, SwiftLLM supports the following features:
+目前，SwiftLLM 支持以下功能：
 
-- Iterational Scheduling and Selective Batching (proposed in [Orca](https://www.usenix.org/conference/osdi22/presentation/yu))
-- PagedAttenton (proposed in [vLLM](https://github.com/vllm-project/vllm), [paper](https://arxiv.org/abs/2309.06180))
-- LLaMA / LLaMA2 / LLaMA3 models ([link](https://llama.meta.com/)) and their variants
-- Piggybacking prefill and decoding (proposed in [SARATHI](https://arxiv.org/abs/2308.16369))
-- Flash attention (proposed in [FlashAttention](https://arxiv.org/abs/2205.14135) and [FlashAttention-2](https://arxiv.org/abs/2307.08691))
-- Paged attention v2 (also called Flash-Decoding, proposed [here](https://crfm.stanford.edu/2023/10/12/flashdecoding.html))
+- 迭代式调度（Iterational Scheduling）和选择性批处理（Selective Batching）（由 [Orca](https://www.usenix.org/conference/osdi22/presentation/yu) 提出）
+- PagedAttention（由 [vLLM](https://github.com/vllm-project/vllm) 提出，论文见 [paper](https://arxiv.org/abs/2309.06180)）
+- LLaMA / LLaMA2 / LLaMA3 模型（[链接](https://llama.meta.com/)）及其变体
+- 将 prefill 与 decoding 组合执行（Piggybacking）（由 [SARATHI](https://arxiv.org/abs/2308.16369) 提出）
+- Flash Attention（由 [FlashAttention](https://arxiv.org/abs/2205.14135) 和 [FlashAttention-2](https://arxiv.org/abs/2307.08691) 提出）
+- Paged Attention v2（也称 Flash-Decoding，介绍见 [这里](https://crfm.stanford.edu/2023/10/12/flashdecoding.html)）
 
-And we plan to add support for the following features in the future:
+未来我们计划支持以下功能：
 
-- Tensor parallelism and pipeline parallelism
+- 张量并行（Tensor Parallelism）和流水线并行（Pipeline Parallelism）
 
-To keep the codebase tiny, we will not support the following features. If you want to use them in your research project, you may need to implement them by yourself:
+为了让代码库保持小巧，我们不会支持以下功能。如果你想在研究项目中使用它们，可能需要自行实现：
 
-- Quantization
+- 量化（Quantization）
 - LoRA
-- Multimodal
-- Models that does not follow LLaMA's architecture
-- Sampling methods other than greedy sampling
-- Hardware supports other than NVIDIA GPU (but it should be easy to migrate to other hardwares as long as OpenAI Triton supports them)
+- 多模态
+- 不遵循 LLaMA 架构的模型
+- 贪心采样以外的采样方法
+- NVIDIA GPU 以外的硬件支持（不过只要 OpenAI Triton 支持，迁移到其他硬件应该并不困难）
 
-Remember that SwiftLLM is NOT an all-in-one solution for production. It's advised to think it as a "foundation" for your research project, and you may need to implement some features by yourself. We encourage you, my dear researcher, to read the code, understand it, modify it, and extend it to fit your research needs.
+请记住，SwiftLLM **不是** 面向生产的一体化方案。更适合把它看作你研究项目的“基础设施”，你可能仍需要自己实现一些功能。我们鼓励你，亲爱的研究者，去阅读代码、理解代码、修改代码，并按照你的研究需求进行扩展。
 
-## Architecture
+## 架构
 
-SwiftLLM's architecture can be divided into two major parts: the *control plane* and the *data plane*.
+SwiftLLM 的架构可以分为两个主要部分：*控制平面*（control plane）和 *数据平面*（data plane）。
 
-Briefly speaking, the *control plane* decides "what to compute" or "how to schedule", while the *data plane* decides "how to compute" or "how to implement" and performs the concrete computation. They work in a master-worker manner: the control plane acts like a master, who performs the high-level scheduling and coordination and sends jobs to the data plane, which acts like a worker, who performs the low-level computation.
+简单来说，*控制平面*决定“算什么”以及“如何调度”，而 *数据平面*决定“如何计算”以及“如何实现”，并执行具体的计算过程。它们以 master-worker 的方式协同工作：控制平面像 master，负责高层调度与协调，并向数据平面下发任务；数据平面像 worker，负责底层计算。
 
-The code for the control plane resides in the `swiftllm/server` directory, including components like `Engine`, `Scheduler`, the API server, and `TokenizationEngine`. The code for the data plane resides in the `swiftllm/worker` directory, including descriptions of the computation graph (in `swiftllm/worker/model.py`), implementation of layers in the model (in `swiftllm/layers`), and the OpenAI Triton kernels (you can imagine "kernels" as functions executed on the GPU)  (in `swiftllm/kernels`).
+控制平面的代码位于 `swiftllm/server` 目录中，包括 `Engine`、`Scheduler`、API server 和 `TokenizationEngine` 等组件。数据平面的代码位于 `swiftllm/worker` 目录中，包括计算图描述（位于 `swiftllm/worker/model.py`）、模型各层的实现（位于 `swiftllm/layers`），以及 OpenAI Triton kernel（你可以把 “kernel” 理解为在 GPU 上执行的函数，位于 `swiftllm/kernels`）。
 
-Let's take the toy API server (located in `swiftllm/server/api_server.py`) as an example:
+我们以一个简化版 API server（位于 `swiftllm/server/api_server.py`）为例：
 
-- Upon launching, it uses an `EngineConfig` to create an `Engine`.
-- After that, the engine is initialized via `Engine.initialize`, where it creates the `Scheduler`, the `TokenizationEngine`, and a set of (currently only one since Tensor Parallelism is not supported) workers. Then it commands the worker to execute `profile_num_blocks` to calculate the number of GPU blocks, after which the engine commands all workers to allocate their KV cache and KV swap.
-- Finally, the event loop is activated via `Engine.start_all_event_loops`. In each step of the loop, the engine queries the scheduler for the next batch of requests to compute, commands the worker to perform swap in/out, then sends the batch to the worker to compute.
-- The API server listens to user requests and interacts with the engine to fulfill them.
+- 启动时，它会使用一个 `EngineConfig` 来创建 `Engine`。
+- 随后通过 `Engine.initialize` 初始化引擎，其中会创建 `Scheduler`、`TokenizationEngine` 和一组 worker（目前由于尚不支持 Tensor Parallelism，因此只有一个 worker）。然后它会命令 worker 执行 `profile_num_blocks` 来计算 GPU block 数量，之后引擎会命令所有 worker 分配各自的 KV cache 和 KV swap。
+- 最后，通过 `Engine.start_all_event_loops` 启动事件循环。在循环的每一步中，引擎会向调度器查询下一批需要计算的请求，命令 worker 执行 swap in/out，然后将该批请求发送给 worker 进行计算。
+- API server 负责监听用户请求，并与引擎交互以完成这些请求。
 
-Currently the control plane (`Engine`) and the data plane (`LlamaModel`) resides on the same node. After Tensor Parallelism / Pipeline Parallelism is implemented, the data plane may be distributed to multiple nodes.
+目前控制平面（`Engine`）和数据平面（`LlamaModel`）都驻留在同一个节点上。在实现 Tensor Parallelism / Pipeline Parallelism 之后，数据平面可能会分布到多个节点上。
 
-## How to Use
+## 如何使用
 
-We offer two ways to use SwiftLLM: using both the control plane and the data plane, or using only the data plane.
+我们提供两种使用 SwiftLLM 的方式：同时使用控制平面和数据平面，或者仅使用数据平面。
 
-If your idea is simple or elegant enough that can be seamlessly integrated into the existing control plane, you may use both the control plane and the data plane. In another case, where you would like to implement a splendid ide, you may only leverage the data plane, and implement a new control plane by yourself.
+如果你的想法足够简单或足够优雅，能够无缝集成到现有控制平面中，那么你可以同时使用控制平面和数据平面。另一种情况下，如果你想实现一个非常有意思的新思路，也可以只复用数据平面，并自行实现一个新的控制平面。
 
-## Build and Run
+## 构建与运行
 
-First let's set up the environment:
+首先配置环境：
 
-- You may start from a clean conda environment with Python >= 3.9, or use an existing one. Do not forget to activate the conda environment if you are using one.
-- Install [PyTorch](https://pytorch.org/). Pay attention to select the correct version based on your hardware.
-- Install `packaging` via `pip install packaging`
+- 你可以从一个全新的 conda 环境开始，要求 Python >= 3.9；也可以使用已有环境。如果你使用 conda，请不要忘记激活环境。
+- 安装 [PyTorch](https://pytorch.org/)。请根据你的硬件选择正确的版本。
+- 通过 `pip install packaging` 安装 `packaging`
 
-And then comes the installation:
+然后开始安装：
 
-- Clone this repo via `git clone https://github.com/interestingLSY/swiftLLM.git`
-- `cd` into the repo (`cd swiftLLM`) and install other dependencies via `pip install -r requirements.txt`.
-- PyTorch may install a stable version of [OpenAI Triton](https://github.com/triton-lang/triton) for you. If you like to use the nightly version for the cutting-edge performance but with potential issues, you may uninstall it and install the nightly version.
-- Run `pip install -e .` to install SwiftLLM into your environment.
-- Install some C-bindings via `pip install -e csrc`
+- 使用 `git clone https://github.com/interestingLSY/swiftLLM.git` 克隆仓库
+- 进入仓库目录（`cd swiftLLM`），并通过 `pip install -r requirements.txt` 安装其他依赖
+- PyTorch 可能会顺带为你安装一个稳定版的 [OpenAI Triton](https://github.com/triton-lang/triton)。如果你想使用 nightly 版本以获得最前沿的性能、并接受潜在问题，可以卸载后改装 nightly 版本
+- 运行 `pip install -e .`，将 SwiftLLM 安装到当前环境中
+- 通过 `pip install -e csrc` 安装一些 C 绑定
 
-Here are some examples:
+下面是一些示例：
 
-- Currently SwiftLLM does not support downloading weights from HuggingFace automatically. You may need to clone or download the model weights from HuggingFace first. Both `.bin` format and `.safetensors` format are supported. Assume your model weight is stored at `/data/to/weight/`.
-- For an offline serving example, you can try `python3 examples/offline.py --model-path /data/to/weight`. This example utilizes the data plane only. If you plan to use SwiftLLM without the control plane, this is a good starting point.
-- For an online serving example that uses the `Engine`, you can try `python3 examples/online.py --model-path /data/to/weight`. This is a great example if you plan to use both the control plane and the data plane.
-- For a more complex example, you can refer to `swiftllm/server/api_server.py`. It launches an API server and provides a vLLM-like interface for online serving. 
+- 目前 SwiftLLM 还不支持自动从 HuggingFace 下载权重。你可能需要先从 HuggingFace 克隆或下载模型权重。支持 `.bin` 和 `.safetensors` 两种格式。假设你的模型权重存放在 `/data/to/weight/`
+- 如果你想看一个离线推理示例，可以尝试 `python3 examples/offline.py --model-path /data/to/weight`。这个示例只使用数据平面。如果你打算在不使用控制平面的情况下使用 SwiftLLM，这是一个很好的起点
+- 如果你想看一个使用 `Engine` 的在线服务示例，可以尝试 `python3 examples/online.py --model-path /data/to/weight`。如果你计划同时使用控制平面和数据平面，这是一个非常好的示例
+- 如果你想看一个更复杂的示例，可以参考 `swiftllm/server/api_server.py`。它会启动一个 API server，并提供类似 vLLM 的在线服务接口
 
-## Performance
+## 性能
 
-Despite being tiny (Tiny ones can be adorable too!), SwiftLLM has no compromise on performance. We have evaluated SwiftLLM on several scenarios, and demonstrate that SwiftLLM can achieve equivalent performance, or even better, compared to vLLM.
+尽管体积很小（小巧的东西也可以很可爱！），SwiftLLM 在性能上并没有妥协。我们在多个场景下对 SwiftLLM 进行了评估，结果表明，与 vLLM 相比，SwiftLLM 可以达到等效性能，甚至在某些情况下表现更好。
 
-### A Single Forward Operation
+### 单次 Forward 操作
 
-The first scenario is "a single forward operation", where we feed the model with a batch of inputs and let it generate one output token (equivelant to one "forward" operation). This is the basic operation of LLM inference (both online and offline) so its performance is crucial.
+第一个场景是“单次 forward 操作”：我们向模型输入一批数据，并让它生成一个输出 token（等价于一次 “forward” 操作）。这是 LLM 推理（无论在线还是离线）的基础操作，因此其性能至关重要。
 
-Here we use LLaMA-3 7B model with NVIDIA A100 80G PCIE / RTX 4090 GPU under FP16 precision. The results are shown below (lower is better):
+这里我们使用的是 FP16 精度下的 LLaMA-3 7B 模型，运行在 NVIDIA A100 80G PCIE / RTX 4090 GPU 上。结果如下（越低越好）：
 
 ![offline-llama-3-7b-a100](https://raw.githubusercontent.com/interestingLSY/swiftLLM/master/docs/assets/offline-llama-3-7b-a100.png)
 
 ![offline-llama-3-7b-4090](https://raw.githubusercontent.com/interestingLSY/swiftLLM/master/docs/assets/offline-llama-3-7b-4090.png)
 
-It can be seen that SwiftLLM can achieve equivalent performance (or even outperform) to vLLM under the same settings.
+可以看到，在相同设置下，SwiftLLM 能够达到与 vLLM 相当的性能，甚至在部分情况下更优。
 
-### Online Serving
+### 在线服务
 
-The second scenario is "online serving", where we start an API server, sample prompts from a real-world dataset, and let the model generate completions. This is the scenario where LLM is used in real-world applications like chatbots or code completions.
+第二个场景是“在线服务”：我们启动一个 API server，从真实世界数据集中采样 prompt，并让模型生成补全结果。这是 LLM 在聊天机器人、代码补全等真实应用中的典型使用场景。
 
-Here we use the [ShareGPT](https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered) dataset to sample prompts, and use a poisson process with different lambdas to simulate different request arrival rates. The results are shown below (lower is better):
+这里我们使用 [ShareGPT](https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered) 数据集来采样 prompt，并使用不同 lambda 的泊松过程来模拟不同的请求到达速率。结果如下（越低越好）：
 
 ![online-llama-3-7b-a100](https://raw.githubusercontent.com/interestingLSY/swiftLLM/master/docs/assets/online-llama-3-7b-a100.png)
 
 ![online-llama-3-7b-4090](https://raw.githubusercontent.com/interestingLSY/swiftLLM/master/docs/assets/online-llama-3-7b-4090.png)
 
-It can be seen that on A100 80G PCIE, SwiftLLM can achieve equivalent performance to vLLM, while on RTX 4090, SwiftLLM significantly outperforms vLLM (mainly because of that our control plane has a lower overhead).
+可以看到，在 A100 80G PCIE 上，SwiftLLM 能达到与 vLLM 相当的性能；而在 RTX 4090 上，SwiftLLM 明显优于 vLLM（主要原因是我们的控制平面开销更低）。
